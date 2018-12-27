@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+    <title> Birth Music Program </title>
+  </head>
+    <body>
+        <h1>Birth Music Program</h1>
+        <p>by Jane Plomp</p>
+        <p> <b>Try it out!</b> <br>
+            Put in your birthday and click the submit button. <br>
+            Note: Use zeroes (so if you were born on January fifth type in 01 and 05 instead of 1 and 5)</p>
+            <form action="javascript:getBirthday" id=birthdayForm>
+              <label for="month">Month born:</label>
+              <input type="text" required pattern="[0-9]{2}" min="01" max="12" id = "month" placeholder="01">
+              <label for="day">Day born:</label>
+              <input type="text" required pattern="[0-9]{2}" min="01" max="31" id="day" placeholder="01">
+              <label for="year">Year born:</label>
+              <input type="text" required pattern="[0-9]{4}" id="year" placeholder="2018">
+              <button type="button" id="submit">Submit</button>
+            </form>
+        <hr> <!--Horizontal line-->
+        <div id="errorValidity"></div> <br>
+        <div id="birthdayDisplay"></div> <br>
+        <div id="explainChords"></div> <br>
+        <div id="explainChange"></div> <br>
+        <div id="explainKey"></div> <br>
+        <div id="explainTempo"></div> <br>
+        <div id="explainArpeggios1"></div> <br>
+        <div id="explainArpeggios2"></div> <br>
+        <div id="explainArpeggios3"></div> <br>
+        <p> If you'd like to learn more about how the music is made, check out the <a href="https://github.com/BoJanie/birth_music/blob/master/README.md">README!</a> </p>
+
+
+        <script src="js/tone.js"></script>
+
+        <script>
+            //Collect Birthday from User and runs function on it
+            function getBirthday() {
+                var day = document.getElementById("day").value;
+                var month = document.getElementById("month").value;
+                var year = document.getElementById("year").value;
+
+                //Verbalizes birthday to make sure it's correct
+                var birthday = "You were born " + month + "/" + day + "/" + year + ".";
+                document.getElementById("birthdayDisplay").innerHTML = birthday;
+
+                //Turns the birthday into a string that can be used/converted for calculations
+                var birthdayString = month + day + year;
+                function bdayInt(num){
+                  return parseInt(birthdayString.charAt(num));
+                }
+
+                var dayInt = parseInt(day);
+
+                //ACTUAL MUSIC PRODUCTION:
+                var synth = new Tone.Synth().toMaster();
+
+                //Function to quickly play note:
+                function triggerSynth(note,time) {
+                  synth.triggerAttackRelease(note,"4n",time);
+                };
+
+                //KEYS
+                chromaticScale = ["G3", "G#3", "A3,", "Bb3", "B3", "C4", "C#4",
+                    "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4",
+                    "B4", "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5",
+                    "G#5", "A5"]
+                for(i=0; i < 10; i++) {
+                  var change = month - 1
+                  var tiNoteL = chromaticScale[change];
+                  var doNote = chromaticScale[1+change];
+                  var reNote = chromaticScale[3+change];
+                  var miNote = chromaticScale[5+change];
+                  var faNote = chromaticScale[6+change];
+                  var soNote = chromaticScale[8+change];
+                  var laNote = chromaticScale[10+change];
+                  var tiNote = chromaticScale[12+change];
+                  var doNoteH = chromaticScale[13+change];
+                  var reNoteH = chromaticScale[15+change];
+                }
+
+                solfegeScale = [tiNoteL, doNote, reNote, miNote, faNote, soNote, laNote, tiNote, doNoteH, reNoteH];
+
+                //This function will convert a single digit number to solfege:
+                function convertNumberToSolfege(num) {
+                  var solfege = solfegeScale[num];
+                  return solfege
+                }
+
+                //Convert numbers to solfege using function above, store in array to play
+                var i
+                var notes = [];
+                var notesNumbers = [];
+                //First section:
+                for(i=0; i<birthdayString.length; i++) {
+                  notes.push(convertNumberToSolfege(bdayInt(i)));
+                  notesNumbers.push(bdayInt(i));
+                }
+                //Second section will be raised by:
+                var change = year%6 + 1
+                //Second section, same but up a third:
+                for(i=0; i<birthdayString.length; i++) {
+                  notes.push(convertNumberToSolfege((bdayInt(i)+change)%10));
+                  notesNumbers.push((bdayInt(i)+change)%10);
+                }
+                //Repeat of first:
+                for(i=0; i<birthdayString.length; i++) {
+                  notes.push(convertNumberToSolfege(bdayInt(i)));
+                  notesNumbers.push(bdayInt(i));
+                }
+                //Array ends with a do, based on how high last note is
+                var lastNote = notes[notes.length-1]
+                if(lastNote==tiNote || lastNote==doNoteH || lastNote==reNoteH) {
+                  notes.push(doNoteH)
+                  notesNumbers.push(8);
+                } else {
+                  notes.push(doNote)
+                  notesNumbers.push(1);
+                }
+                console.log(notesNumbers);
+
+                //Find the THIRD
+                var thirds = [];
+                for(i=0;i<notesNumbers.length; i++) {
+                  //Third below high do:
+                  if(notesNumbers[i] > 7) {
+                    var thirdTemp = notesNumbers[i]-5;
+                    thirds.push(convertNumberToSolfege(thirdTemp));
+                  } else { //Third above high do needs to go down:
+                    var thirdTemp = (notesNumbers[i]+2)%10;
+                    thirds.push(convertNumberToSolfege(thirdTemp));
+                  }
+                }
+
+                //Find the FIFTH
+                var fifths = [];
+                for(i=0;i<notesNumbers.length; i++) {
+                  //Fifth below so:
+                  if(notesNumbers[i] > 5) {
+                    var fifthTemp = notesNumbers[i]-3;
+                    fifths.push(convertNumberToSolfege(fifthTemp));
+                  } else { //fifth above so needs to go down:
+                    var fifthTemp = (notesNumbers[i]+4)%10;
+                    fifths.push(convertNumberToSolfege(fifthTemp));
+                  }
+                }
+
+                const now = 0.50+Tone.now();
+                //Set a time duration (tempo) based on day born
+                var dur = 1 + dayInt*0.025;
+
+                //PLAY CHORDS!!
+                //make polysynth first...
+                var polySynth = new Tone.PolySynth(3, Tone.Synth).toMaster();
+
+                //The emphasis array will help us decide what note=chord vs arpeggios
+                emphasis = [];
+                for(i=0; i < notes.length; i++) {
+                  beatOne = now + dur*i
+                  beatTwo = now + dur*i + dur/4
+                  beatThree = now + dur*i + 2*dur/4
+                  beatFour = now + dur*i + 3*dur/4
+                  //For the first half of the song:
+                  if(i%8 < 4) {
+                    if(year%2 == 0) { //Year is even, chord on 1
+                      emphasis.push([beatOne, beatTwo, beatThree, beatFour])
+                      yearEvenOdd = "even" //These variables will be used to explain to users later.
+                      yearBeat = "1st"
+                    } else { //Year is odd, chord on 3
+                      emphasis.push([beatThree, beatOne, beatTwo, beatFour])
+                      yearEvenOdd = "odd"
+                      yearBeat = "3rd"
+                    }
+                  } else { //For the second half of the song:
+                    if(month > 2 && month < 6) { //Spring! Chord on 1
+                      emphasis.push([beatOne, beatTwo, beatThree, beatFour])
+                      season = "spring" //This will help explain
+                      seasonBeat = "1st"
+                    } else if(month > 5 && month < 9) { //Summer! Chord on 2
+                      emphasis.push([beatTwo, beatOne, beatThree, beatFour])
+                      season = "summer"
+                      seasonBeat = "2nd"
+                    } else if(month > 8 && month < 12) { //Fall! Chord on 3
+                      emphasis.push([beatThree, beatOne, beatTwo, beatFour])
+                      season = "fall"
+                      seasonBeat = "3rd"
+                    } else if(month == 12 || month < 3) { //Winter! Chord on 4
+                      emphasis.push([beatFour, beatOne, beatTwo, beatThree])
+                      season = "winter"
+                      seasonBeat = "4th"
+                    }
+                  }
+                }
+
+                //This array will determine whether an arpeggio is played or not
+                //1= yes arpeggio, 2= no arpeggio
+                var arpeggios = [];
+                if(day%2 == 0) { //if born on an even numbered day, then this!
+                  typeNumDay = "even";
+                  for(i=0; i < notes.length; i++) {
+                    if(i%4 < 2){
+                      arpeggios.push(1)
+                    } else {
+                      arpeggios.push(0)
+                    }
+                  }
+                } else if( //if born on a prime number day, then this!
+                  day == 1 || day == 2 || day == 3 || day == 5 ||
+                  day == 7 || day == 11 || day == 13 || day == 17 ||
+                  day == 19|| day == 23 || day == 29 || day == 31
+                ) {
+                  typeNumDay = "prime";
+                  for(i=0; i < notes.length; i++) {
+                    if((i%4 == 0 || i%4 == 2) && i%8 != 6){
+                      arpeggios.push(1)
+                    } else {
+                      arpeggios.push(0)
+                    }
+                  }
+                } else { //if non=prime odd, then:
+                  typeNumDay = "odd"
+                  for(i=0; i < notes.length; i++) {
+                    if(i%8 < 4){
+                      arpeggios.push(1)
+                    } else {
+                      arpeggios.push(0)
+                    }
+                  }
+                }
+
+
+                //Now to actually play the notes!
+                var i;
+                for(i=0; i < notes.length; i++) {
+                  if((arpeggios[i] == 1) && (i != notes.length-1)) { //REPLACE WITH A TRUE/FALSE ARRAY TO CHOOSE WHAT IS ARPEGGIATED!!!!
+                    polySynth.triggerAttackRelease([notes[i], thirds[i], fifths[i]], dur/4, emphasis[i][0]);
+                    synth.triggerAttackRelease(notes[i], dur/4, emphasis[i][1]);
+                    synth.triggerAttackRelease(thirds[i], dur/4, emphasis[i][2]);
+                    synth.triggerAttackRelease(fifths[i], dur/4, emphasis[i][3]);
+                  } else if(notesNumbers[i] == (notesNumbers[i+1] - 2)) { //If a passing note up makes sense
+                    var passingNote = convertNumberToSolfege(notesNumbers[i] + 1);
+                    polySynth.triggerAttackRelease([notes[i], thirds[i], fifths[i]], dur/2, now + dur*i)
+                    polySynth.triggerAttackRelease([passingNote, thirds[i], fifths[i]], dur/2, now + dur*i + dur/2)
+                    console.log("Passing note up at note number: " + (i+1))
+                  } else if(notesNumbers[i] == (notesNumbers[i+1] + 2)) { //If a passing note down makes sense
+                    var passingNote = convertNumberToSolfege(notesNumbers[i] - 1);
+                    polySynth.triggerAttackRelease([notes[i], thirds[i], fifths[i]], dur/2, now + dur*i)
+                    polySynth.triggerAttackRelease([passingNote, thirds[i], fifths[i]], dur/2, now + dur*i + dur/2)
+                  } else if(notesNumbers[i] == (notesNumbers[i+1] - 5)) { //If a fifth above, four passing notes
+                    var passOne = convertNumberToSolfege(notesNumbers[i] + 1);
+                    var passTwo = convertNumberToSolfege(notesNumbers[i] + 2);
+                    var passThree = convertNumberToSolfege(notesNumbers[i] + 3);
+                    var passFour = convertNumberToSolfege(notesNumbers[i] + 4);
+                    polySynth.triggerAttackRelease([notes[i], thirds[i], fifths[i]], dur/2, now + dur*i)
+                    synth.triggerAttackRelease(passOne, dur/8, now + dur*i + dur/2);
+                    synth.triggerAttackRelease(passTwo, dur/8, now + dur*i + 5*dur/8);
+                    synth.triggerAttackRelease(passThree, dur/8, now + dur*i + 6*dur/8);
+                    synth.triggerAttackRelease(passFour, dur/8, now + dur*i + 7*dur/8);
+                  } else if(notesNumbers[i] == (notesNumbers[i+1] + 5)) { //If a fifth above, four passing notes
+                    var passOne = convertNumberToSolfege(notesNumbers[i] - 1);
+                    var passTwo = convertNumberToSolfege(notesNumbers[i] - 2);
+                    var passThree = convertNumberToSolfege(notesNumbers[i] - 3);
+                    var passFour = convertNumberToSolfege(notesNumbers[i] - 4);
+                    polySynth.triggerAttackRelease([notes[i], thirds[i], fifths[i]], dur/2, now + dur*i)
+                    synth.triggerAttackRelease(passOne, dur/8, now + dur*i + dur/2);
+                    synth.triggerAttackRelease(passTwo, dur/8, now + dur*i + 5*dur/8);
+                    synth.triggerAttackRelease(passThree, dur/8, now + dur*i + 6*dur/8);
+                    synth.triggerAttackRelease(passFour, dur/8, now + dur*i + 7*dur/8);
+                  } else { //otherwise just play the chord
+                    polySynth.triggerAttackRelease([notes[i], thirds[i], fifths[i]], dur, now + dur*i);
+                  }
+                };
+
+                //EXPLANATIONS FOR THE USER:
+                //This will allow the chords to be articulated:
+                chordRoman = ["I", "ii", "III", "IV", "V", "vi", "vii°"]
+                function translateChords(chord) {
+                  return chordRoman[(chord%7)]
+                }
+                romanChords = []
+                for(i=0; i<notes.length; i++) {
+                  romanChords.push(translateChords(notesNumbers[i]));
+                }
+                romanChordsString = romanChords.join(", ");
+                //This articulates the month born+key:
+                monthStrings = ["January", "February", "March", "April", "May",
+                  "June", "July", "August", "October", "September", "November",
+                  "December"];
+                keyStrings = ["Ab", "A", "Bb", "B", "C", "Db", "D", "Eb",
+                  "E", "F", "Gb", "G"]
+                function stringMonth(month) {
+                  return monthStrings[month-1];
+                }
+                function stringKey(month) {
+                  return keyStrings[month-1];
+                }
+
+                //THESE WILL EXPLAIN TO THE USER WHAT'S GOING ON:
+                document.getElementById("explainChords").innerHTML =
+                "Your chord pattern is: "
+                + romanChordsString + ", I"
+
+                document.getElementById("explainChange").innerHTML =
+                "The middle section of your song was raised by " + change + "."
+
+                document.getElementById("explainKey").innerHTML =
+                "Because you were born in " + stringMonth(month)
+                + ", your song is in the key of " + stringKey(month) + "."
+
+                document.getElementById("explainTempo").innerHTML =
+                "Because you were born on the day of " + day
+                + ", each chord lasts " + dur + " seconds."
+
+                document.getElementById("explainArpeggios1").innerHTML =
+                "Because you were born on a "+ typeNumDay
+                + "-numbered day, the key for whether or not an arpeggio-like pattern will occur is: "
+                + arpeggios + "."
+
+                document.getElementById("explainArpeggios2").innerHTML =
+                "Since you were born an " + yearEvenOdd + "-numbered year, if arpeggiated the chord will fall on the " + yearBeat + " beat of each measure in the first half of the 8 measure pattern."
+
+                document.getElementById("explainArpeggios3").innerHTML =
+                "Since you were born in " + season + ", if arpeggiated the chord will fall on the " + seasonBeat + " beat of each measure in the second half of the 8 measure pattern."
+
+            };
+
+            function checkForm() { //This function checks the validity before going through with the birthday
+              if(birthdayForm.checkValidity()) {
+                getBirthday()
+              } else {
+                console.log("You're not valid."); //Warns the user to use the proper formatting.
+                document.getElementById("errorValidity").innerHTML = "Please make sure you use the proper format, including zeroes before single digit numbers.";
+              }
+            }
+            document.getElementById('submit').addEventListener('click',checkForm)
+
+
+        </script>
+    </body>
+</html>
