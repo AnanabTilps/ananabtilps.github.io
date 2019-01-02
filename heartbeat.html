@@ -10,37 +10,49 @@
       <hr> <!--Horizontal line-->
 
       <script src="js/tone.js"></script>
+      <script src="js/StartAudioContext.js"></script>
 
       <script>
 
-        var kick = new Tone.MembraneSynth({
-          "envelope" : {
-            "sustain" : 0,
-            "attack" : 0.02,
-            "decay" : 0.8
-          },
-          "octaves" : 10
-        }).toMaster();
+        StartAudioContext(Tone.context, 'buttonElement').then(function(){
+          //callback is invoked when the AudioContext.state is 'running'
+          begin();
+        });
 
-        var kickPart = new Tone.Loop(function(time){
-          kick.triggerAttackRelease("C2", "8n", time);
-        }, "2n").start(0);
+        function begin(){
 
-        var kick2 = new Tone.MembraneSynth({
-          "envelope" : {
-            "sustain" : 0,
-            "attack" : 0.02,
-            "decay" : 0.8
-          },
-          "octaves" : 5
-        }).toMaster();
+          console.log("beginning..");
 
-        var kick2Part = new Tone.Loop(function(time){
-          kick2.triggerAttackRelease("C2", "8n", time);
-        }, "2n").start("8n");
+          var kick = new Tone.MembraneSynth({
+            "envelope" : {
+              "sustain" : 0,
+              "attack" : 0.02,
+              "decay" : 0.8
+            },
+            "octaves" : 10
+          }).toMaster();
 
-        // Start the Transport to hear the loop:
-        Tone.Transport.start();
+          var kickPart = new Tone.Loop(function(time){
+            kick.triggerAttackRelease("C2", "8n", time);
+          }, "2n").start(0);
+
+          var kick2 = new Tone.MembraneSynth({
+            "envelope" : {
+              "sustain" : 0,
+              "attack" : 0.02,
+              "decay" : 0.8
+            },
+            "octaves" : 5
+          }).toMaster();
+
+          var kick2Part = new Tone.Loop(function(time){
+            kick2.triggerAttackRelease("C2", "8n", time);
+          }, "2n").start("8n");
+
+          // Start the Transport to hear the loop:
+          Tone.Transport.start();
+
+        }
 
       </script>
     </body>
