@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+    <title> Heartbeat </title>
+  </head>
+    <body>
+      <h1>Trying a rhythm with multiple voices</h1>
+      <p>by Me</p>
+      <hr> <!--Horizontal line-->
+
+      <script src="js/tone.js"></script>
+
+      <script>
+
+        var kick = new Tone.MembraneSynth({
+          "envelope" : {
+            "sustain" : 0,
+            "attack" : 0.02,
+            "decay" : 0.8
+          },
+          "octaves" : 10
+        }).toMaster();
+
+        var kickPart = new Tone.Loop(function(time){
+          kick.triggerAttackRelease("C2", "8n", time);
+        }, "2n").start(0);
+
+        var kick2 = new Tone.MembraneSynth({
+          "envelope" : {
+            "sustain" : 0,
+            "attack" : 0.02,
+            "decay" : 0.8
+          },
+          "octaves" : 5
+        }).toMaster();
+
+        var kick2Part = new Tone.Loop(function(time){
+          kick2.triggerAttackRelease("C2", "8n", time);
+        }, "2n").start("8n");
+
+        // Start the Transport to hear the loop:
+        Tone.Transport.start();
+
+      </script>
+    </body>
+</html>
